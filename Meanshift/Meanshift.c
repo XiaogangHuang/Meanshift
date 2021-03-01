@@ -91,7 +91,7 @@ void ShiftPoint(double* Point, double A[][DIMENSION], double Bandwidth)
             Point[j] += Weights[i] * A[i][j] / Denominator;
 }
 
-void Cluster(double** Shift_Points, int* Clusters)
+void Cluster(double Shift_Points[][DIMENSION], int* Clusters)
 {
     int C = 0, i;
 
@@ -113,23 +113,15 @@ void Cluster(double** Shift_Points, int* Clusters)
 
 int* MeanShift(double A[][DIMENSION], double Bandwidth)
 {
-    double** Shift_Points;
+    double Shift_Points[SIZE][DIMENSION];
     double Tmp[DIMENSION];
     double Max_Dist = 1, Dist;
     int iter = 0, stop_shifting[SIZE] = { 0 }, i, j;
     int* Clusters;
     
-    Shift_Points = (double**)malloc(SIZE * sizeof(double*));
-    if (Shift_Points == NULL)
-        FatalError("Out of space!!!");
     for (i = 0; i < SIZE; i++)
-    {
-        Shift_Points[i] = (double*)malloc(DIMENSION * sizeof(double));
-        if (Shift_Points[i] == NULL)
-            FatalError("Out of space!!!");
         for (j = 0; j < DIMENSION; j++)
             Shift_Points[i][j] = A[i][j];
-    }
 
     while (Max_Dist > EPSILON)
     {
@@ -156,33 +148,20 @@ int* MeanShift(double A[][DIMENSION], double Bandwidth)
         FatalError("Out of space!!!");
     Cluster(Shift_Points, Clusters);
 
-    for (i = 0; i < SIZE; i++)
-    {
-        free(Shift_Points[i]);
-    }
-    free(Shift_Points);
     return Clusters;
 }
 
 int* BlurringMeanShift(double A[][DIMENSION], double Bandwidth)
 {
-    double** Shift_Points;
+    double Shift_Points[SIZE][DIMENSION];
     double Tmp[DIMENSION];
     double Max_Dist = 1, Dist;
     int iter = 0, stop_shifting[SIZE] = { 0 }, i, j;
     int* Clusters;
 
-    Shift_Points = (double**)malloc(SIZE * sizeof(double*));
-    if (Shift_Points == NULL)
-        FatalError("Out of space!!!");
     for (i = 0; i < SIZE; i++)
-    {
-        Shift_Points[i] = (double*)malloc(DIMENSION * sizeof(double));
-        if (Shift_Points[i] == NULL)
-            FatalError("Out of space!!!");
         for (j = 0; j < DIMENSION; j++)
             Shift_Points[i][j] = A[i][j];
-    }
 
     while (Max_Dist > EPSILON)
     {
@@ -218,11 +197,6 @@ int* BlurringMeanShift(double A[][DIMENSION], double Bandwidth)
         FatalError("Out of space!!!");
     Cluster(Shift_Points, Clusters);
 
-    for (i = 0; i < SIZE; i++)
-    {
-        free(Shift_Points[i]);
-    }
-    free(Shift_Points);
     return Clusters;
 }
 
