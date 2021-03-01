@@ -164,12 +164,74 @@ int* MeanShift(double A[][DIMENSION], double Bandwidth)
     return Clusters;
 }
 
+int* BlurringMeanShift(double A[][DIMENSION], double Bandwidth)
+{
+    double** Shift_Points;
+    double Tmp[DIMENSION];
+    double Max_Dist = 1, Dist;
+    int iter = 0, stop_shifting[SIZE] = { 0 }, i, j;
+    int* Clusters;
+
+    Shift_Points = (double**)malloc(SIZE * sizeof(double*));
+    if (Shift_Points == NULL)
+        FatalError("Out of space!!!");
+    for (i = 0; i < SIZE; i++)
+    {
+        Shift_Points[i] = (double*)malloc(DIMENSION * sizeof(double));
+        if (Shift_Points[i] == NULL)
+            FatalError("Out of space!!!");
+        for (j = 0; j < DIMENSION; j++)
+            Shift_Points[i][j] = A[i][j];
+    }
+
+    while (Max_Dist > EPSILON)
+    {
+        Max_Dist = 0;
+        iter += 1;
+        for (i = 0; i < SIZE; i++)
+        {
+            if (stop_shifting[i])
+                continue;
+            for (j = 0; j < DIMENSION; j++)
+            {
+                Tmp[j] = Shift_Points[i][j];
+            }
+            ShiftPoint(Shift_Points[i], A, Bandwidth);
+            Dist = Euclidean(Shift_Points[i], Tmp);
+            if (Dist > Max_Dist)
+                Max_Dist = Dist;
+            if (Dist < EPSILON)
+                stop_shifting[i] = 1;
+        }
+        for (i = 0; i < SIZE; i++)
+        {
+            if (stop_shifting[i])
+                continue;
+            for (j = 0; j < DIMENSION; j++)
+            {
+                A[i][j] = Shift_Points[i][j];
+            }
+        }
+    }
+    Clusters = malloc(SIZE * sizeof(int));
+    if (Clusters == NULL)
+        FatalError("Out of space!!!");
+    Cluster(Shift_Points, Clusters);
+
+    for (i = 0; i < SIZE; i++)
+    {
+        free(Shift_Points[i]);
+    }
+    free(Shift_Points);
+    return Clusters;
+}
+
 int main()
 {
     int i, j;
     double A[SIZE][DIMENSION];
-    double** result;
     int* Clusters;
+    int* BlurringClusters;
 
     //生成正态分布随机数
     for (i = 0; i < 100; i++)
@@ -180,6 +242,7 @@ int main()
             for (j = 0; j < DIMENSION; j++)
                 A[i][j] = GaussRand(2, 0.5);
     
+    printf("Meanshift的聚类结果：\n");
     Clusters = MeanShift(A, 0.6);
     //打印生成的数据
     for (i = 0; i < SIZE; i++)
@@ -192,5 +255,17 @@ int main()
         printf("  类=%d\n", Clusters[i]);
     }
     free(Clusters);
+    BlurringClusters = BlurringMeanShift(A, 0.4);
+    printf("Blurring meanshift的聚类结果：\n");
+    for (i = 0; i < SIZE; i++)
+    {
+        printf("点的坐标：");
+        for (j = 0; j < DIMENSION; j++)
+        {
+            printf("%5.2f ", A[i][j]);
+        }
+        printf("  类=%d\n", BlurringClusters[i]);
+    }
+    free(BlurringClusters);
     return 0;
 }
